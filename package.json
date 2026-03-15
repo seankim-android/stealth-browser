@@ -1,0 +1,26 @@
+{
+  "name": "stealth-browser",
+  "version": "0.1.0",
+  "description": "Browser automation for AI agents with anti-detection built in",
+  "type": "module",
+  "bin": {
+    "stealth-browser": "./dist/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.ts",
+    "start": "node dist/index.js"
+  },
+  "keywords": ["browser", "automation", "playwright", "stealth", "ai-agent", "anti-detection"],
+  "license": "MIT",
+  "dependencies": {
+    "playwright": "^1.50.0",
+    "playwright-extra": "^4.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.7.0",
+    "tsx": "^4.19.0"
+  }
+}
