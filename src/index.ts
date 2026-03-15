@@ -154,6 +154,19 @@ function parseArgs(argv: string[]): Command {
       return { action: 'wait', ms: ms ? parseInt(ms) : undefined, text, ref }
     }
 
+    case 'click-at': {
+      const x = parseInt(args[1])
+      const y = parseInt(args[2])
+      if (isNaN(x) || isNaN(y)) throw new Error('Usage: stealth-browser click-at <x> <y>')
+      return { action: 'click-at', x, y }
+    }
+
+    case 'js': {
+      const code = args.slice(1).join(' ')
+      if (!code) throw new Error('Usage: stealth-browser js "<javascript>"')
+      return { action: 'js', code }
+    }
+
     case 'close':
       return { action: 'close' }
 

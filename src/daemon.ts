@@ -90,6 +90,20 @@ async function handleCommand(manager: BrowserManager, cmd: Command): Promise<Res
         return { ok: true, output: out }
       }
 
+      case 'click-at': {
+        const page = manager.getPage()
+        if (!page) return { ok: false, error: 'No page open. Run `open <url>` first.' }
+        await page.mouse.click(cmd.x, cmd.y)
+        return { ok: true, output: `Clicked at (${cmd.x}, ${cmd.y})` }
+      }
+
+      case 'js': {
+        const page = manager.getPage()
+        if (!page) return { ok: false, error: 'No page open. Run `open <url>` first.' }
+        const result = await page.evaluate(cmd.code)
+        return { ok: true, output: result != null ? String(result) : 'done' }
+      }
+
       case 'close': {
         const out = await manager.close()
         return { ok: true, output: out }

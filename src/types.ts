@@ -10,6 +10,8 @@ export type Command =
   | { action: 'hover'; ref: string }
   | { action: 'get'; what: 'text' | 'html' | 'value' | 'title' | 'url' | 'attr'; ref?: string; attr?: string }
   | { action: 'wait'; ref?: string; text?: string; ms?: number }
+  | { action: 'click-at'; x: number; y: number }
+  | { action: 'js'; code: string }
   | { action: 'close' }
   | { action: 'ping' }
 
