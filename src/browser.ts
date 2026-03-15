@@ -26,6 +26,7 @@ export class BrowserManager {
 
     // launchPersistentContext keeps cookies/storage across sessions
     this.context = await chromium.launchPersistentContext(USER_DATA_DIR, {
+      executablePath: process.env.PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH ?? process.env.AGENT_BROWSER_EXECUTABLE_PATH ?? '/usr/bin/chromium',
       headless: true,
       viewport: { width: 1280, height: 800 },
       userAgent:
