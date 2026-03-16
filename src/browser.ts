@@ -18,7 +18,14 @@ export class BrowserManager {
   private context: BrowserContext | null = null
   private page: Page | null = null
   private isRemote = false
-  public refMap: Record<string, { selector: string; index: number }> = {}
+  public refMap: Record<string, { selector: string; index: number; role?: string }> = {}
+
+  private getLocator(page: Page, entry: { selector: string; index: number; role?: string }) {
+    if (entry.role) {
+      return (page as any).getByRole(entry.role).nth(entry.index)
+    }
+    return page.locator(entry.selector).nth(entry.index)
+  }
 
   async launch(): Promise<void> {
     if (this.browser || this.context) return
@@ -115,7 +122,7 @@ export class BrowserManager {
     const page = await this.ensureLaunched()
     const entry = this.refMap[ref]
     if (!entry) throw new Error(`Unknown ref: ${ref}`)
-    const locator = page.locator(entry.selector).nth(entry.index)
+    const locator = this.getLocator(page, entry)
     await locator.click({ timeout: 10000 })
     await page.waitForLoadState('domcontentloaded').catch(() => {})
     return `✓ Clicked ${ref}`
@@ -125,7 +132,7 @@ export class BrowserManager {
     const page = await this.ensureLaunched()
     const entry = this.refMap[ref]
     if (!entry) throw new Error(`Unknown ref: ${ref}`)
-    const locator = page.locator(entry.selector).nth(entry.index)
+    const locator = this.getLocator(page, entry)
     await locator.fill(text, { timeout: 10000 })
     return `✓ Filled ${ref} with "${text}"`
   }
@@ -134,7 +141,7 @@ export class BrowserManager {
     const page = await this.ensureLaunched()
     const entry = this.refMap[ref]
     if (!entry) throw new Error(`Unknown ref: ${ref}`)
-    const locator = page.locator(entry.selector).nth(entry.index)
+    const locator = this.getLocator(page, entry)
     await locator.pressSequentially(text, { delay: 50 })
     return `✓ Typed "${text}" into ${ref}`
   }
@@ -158,7 +165,7 @@ export class BrowserManager {
     const page = await this.ensureLaunched()
     const entry = this.refMap[ref]
     if (!entry) throw new Error(`Unknown ref: ${ref}`)
-    await page.locator(entry.selector).nth(entry.index).hover()
+    await this.getLocator(page, entry).hover()
     return `✓ Hovered over ${ref}`
   }
 
@@ -166,14 +173,14 @@ export class BrowserManager {
     const page = await this.ensureLaunched()
     const entry = this.refMap[ref]
     if (!entry) throw new Error(`Unknown ref: ${ref}`)
-    return (await page.locator(entry.selector).nth(entry.index).textContent()) ?? ''
+    return (await this.getLocator(page, entry).textContent()) ?? ''
   }
 
   async getAttr(ref: string, attr: string): Promise<string> {
     const page = await this.ensureLaunched()
     const entry = this.refMap[ref]
     if (!entry) throw new Error(`Unknown ref: ${ref}`)
-    return (await page.locator(entry.selector).nth(entry.index).getAttribute(attr)) ?? ''
+    return (await this.getLocator(page, entry).getAttribute(attr)) ?? ''
   }
 
   async waitFor(opts: { ref?: string; text?: string; ms?: number }): Promise<string> {
@@ -189,7 +196,7 @@ export class BrowserManager {
     if (opts.ref) {
       const entry = this.refMap[opts.ref]
       if (!entry) throw new Error(`Unknown ref: ${opts.ref}`)
-      await page.locator(entry.selector).nth(entry.index).waitFor({ timeout: 15000 })
+      await this.getLocator(page, entry).waitFor({ timeout: 15000 })
       return `✓ Element ${opts.ref} is visible`
     }
     return '✓ Done waiting'
@@ -205,7 +212,7 @@ export class BrowserManager {
     }
     const entry = this.refMap[ref]
     if (!entry) throw new Error(`Unknown ref: ${ref}`)
-    await page.locator(entry.selector).nth(entry.index).setInputFiles(filePath)
+    await this.getLocator(page, entry).setInputFiles(filePath)
     return `✓ Uploaded ${filePath} to ${ref}`
   }
 

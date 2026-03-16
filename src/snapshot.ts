@@ -10,7 +10,7 @@ const INTERACTIVE_ROLES = new Set([
 const ROLE_SELECTORS: Record<string, string> = {
   link: 'a[href]',
   button: 'button, [role="button"]',
-  textbox: 'input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]), textarea',
+  textbox: 'input:not([type="submit"]):not([type="button"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="hidden"]):not([type="file"]), textarea',
   searchbox: 'input[type="search"]',
   checkbox: 'input[type="checkbox"]',
   radio: 'input[type="radio"]',
@@ -28,7 +28,7 @@ const ROLE_SELECTORS: Record<string, string> = {
  */
 export async function buildSnapshot(
   page: Page,
-  refMap: Record<string, { selector: string; index: number }>,
+  refMap: Record<string, { selector: string; index: number; role?: string }>,
   interactiveOnly = false,
   compact = false,
 ): Promise<string> {
@@ -58,7 +58,7 @@ export async function buildSnapshot(
       const selector = ROLE_SELECTORS[role] ?? `[role="${role}"]`
       const idx = roleCounters[role] ?? 0
       roleCounters[role] = idx + 1
-      refMap[ref] = { selector, index: idx }
+      refMap[ref] = { selector, index: idx, role }
     } else {
       if (!interactiveOnly) annotated.push(line)
     }
