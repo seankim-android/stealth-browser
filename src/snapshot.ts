@@ -28,7 +28,7 @@ const ROLE_SELECTORS: Record<string, string> = {
  */
 export async function buildSnapshot(
   page: Page,
-  refMap: Record<string, { selector: string; index: number; role?: string }>,
+  refMap: Record<string, { selector: string; index: number; role?: string; name?: string }>,
   interactiveOnly = false,
   compact = false,
 ): Promise<string> {
@@ -58,7 +58,10 @@ export async function buildSnapshot(
       const selector = ROLE_SELECTORS[role] ?? `[role="${role}"]`
       const idx = roleCounters[role] ?? 0
       roleCounters[role] = idx + 1
-      refMap[ref] = { selector, index: idx, role }
+      // Extract accessible name (first quoted string after role)
+      const nameMatch = line.match(/\s+-\s+\w[\w-]*\s+"([^"]+)"/)
+      const name = nameMatch ? nameMatch[1] : undefined
+      refMap[ref] = { selector, index: idx, role, name }
     } else {
       if (!interactiveOnly) annotated.push(line)
     }

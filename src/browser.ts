@@ -18,9 +18,13 @@ export class BrowserManager {
   private context: BrowserContext | null = null
   private page: Page | null = null
   private isRemote = false
-  public refMap: Record<string, { selector: string; index: number; role?: string }> = {}
+  public refMap: Record<string, { selector: string; index: number; role?: string; name?: string }> = {}
 
-  private getLocator(page: Page, entry: { selector: string; index: number; role?: string }) {
+  private getLocator(page: Page, entry: { selector: string; index: number; role?: string; name?: string }) {
+    if (entry.role && entry.name) {
+      // Use accessible name — exact match, independent of DOM order
+      return (page as any).getByRole(entry.role, { name: entry.name, exact: true }).first()
+    }
     if (entry.role) {
       return (page as any).getByRole(entry.role).nth(entry.index)
     }
