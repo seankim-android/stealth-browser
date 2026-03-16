@@ -54,3 +54,25 @@ js "var btn = Array.from(document.querySelectorAll('button')).find(b => b.textCo
 **Result:** Comment submitted successfully to r/vibecoding thread. Works for any shadow-DOM-intercepted button — find by text content + type, dispatch MouseEvent instead of pointer click.
 
 ### Status: STABLE v3 — shadow DOM button workaround via dispatchEvent
+
+## STABLE v4: ProseMirror comment box fix
+
+**Problem**: `fill @ref` populates the textbox visually but leaves the Comment button `[disabled]`. ProseMirror/shreddit-composer doesn't fire its internal state update from a programmatic fill.
+
+**Fix**: Focus the contenteditable div and use execCommand to insert text:
+```js
+var editor = document.querySelector('div[contenteditable=true]');
+editor.focus();
+document.execCommand('selectAll', false, null);
+document.execCommand('delete', false, null);
+document.execCommand('insertText', false, 'your comment text here');
+```
+After this the Comment button loses `[disabled]` and can be clicked normally via `click @ref`.
+
+**Full working flow**:
+1. `click @textboxRef` — click the comment area to open the editor
+2. `js "var editor = document.querySelector('div[contenteditable=true]'); editor.focus(); document.execCommand('selectAll',false,null); document.execCommand('delete',false,null); document.execCommand('insertText',false,'text'); 'ok'"` — insert text
+3. Check snapshot — verify button is `[ref=eXX]` not `[disabled]`
+4. `click @buttonRef` — submit normally
+
+Status: STABLE v4
