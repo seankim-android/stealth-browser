@@ -150,6 +150,12 @@ export class BrowserManager {
     return `✓ Typed "${text}" into ${ref}`
   }
 
+  async keyboardType(text: string): Promise<string> {
+    const page = await this.ensureLaunched()
+    await page.keyboard.type(text, { delay: 5 })
+    return `✓ Keyboard typed "${text.slice(0, 40)}..."`
+  }
+
   async press(key: string): Promise<string> {
     const page = await this.ensureLaunched()
     await page.keyboard.press(key)

@@ -6,6 +6,7 @@ export type Command =
   | { action: 'fill'; ref: string; text: string }
   | { action: 'type'; ref: string; text: string }
   | { action: 'press'; key: string }
+  | { action: 'keyboard-type'; text: string }
   | { action: 'scroll'; direction: 'up' | 'down' | 'left' | 'right'; amount: number }
   | { action: 'hover'; ref: string }
   | { action: 'get'; what: 'text' | 'html' | 'value' | 'title' | 'url' | 'attr'; ref?: string; attr?: string }

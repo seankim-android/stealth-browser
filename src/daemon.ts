@@ -65,6 +65,11 @@ async function handleCommand(manager: BrowserManager, cmd: Command): Promise<Res
         return { ok: true, output: out }
       }
 
+      case 'keyboard-type': {
+        const out = await manager.keyboardType(cmd.text)
+        return { ok: true, output: out }
+      }
+
       case 'scroll': {
         const out = await manager.scroll(cmd.direction, cmd.amount)
         return { ok: true, output: out }

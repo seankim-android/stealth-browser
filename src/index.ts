@@ -126,6 +126,10 @@ function parseArgs(argv: string[]): Command {
       if (!args[1] || !args[2]) throw new Error('Usage: stealth-browser type @ref "text"')
       return { action: 'type', ref: args[1].replace('@', ''), text: args[2] }
 
+    case 'keyboard':
+      if (args[1] === 'type' && args[2]) return { action: 'keyboard-type', text: args[2] }
+      throw new Error('Usage: stealth-browser keyboard type "text"')
+
     case 'press':
       if (!args[1]) throw new Error('Usage: stealth-browser press <key>')
       return { action: 'press', key: args[1] }
