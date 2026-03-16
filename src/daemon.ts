@@ -104,6 +104,11 @@ async function handleCommand(manager: BrowserManager, cmd: Command): Promise<Res
         return { ok: true, output: result != null ? String(result) : 'done' }
       }
 
+      case 'upload': {
+        const out = await manager.upload(cmd.ref, cmd.filePath)
+        return { ok: true, output: out }
+      }
+
       case 'close': {
         const out = await manager.close()
         return { ok: true, output: out }

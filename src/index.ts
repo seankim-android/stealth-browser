@@ -167,6 +167,11 @@ function parseArgs(argv: string[]): Command {
       return { action: 'js', code }
     }
 
+    case 'upload': {
+      if (!args[1] || !args[2]) throw new Error('Usage: stealth-browser upload <file:N> /path/to/file')
+      return { action: 'upload', ref: args[1].replace('@', ''), filePath: args[2] }
+    }
+
     case 'close':
       return { action: 'close' }
 

@@ -12,6 +12,7 @@ export type Command =
   | { action: 'wait'; ref?: string; text?: string; ms?: number }
   | { action: 'click-at'; x: number; y: number }
   | { action: 'js'; code: string }
+  | { action: 'upload'; ref: string; filePath: string }
   | { action: 'close' }
   | { action: 'ping' }
 

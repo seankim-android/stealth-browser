@@ -178,6 +178,20 @@ export class BrowserManager {
     return '✓ Done waiting'
   }
 
+  async upload(ref: string, filePath: string): Promise<string> {
+    const page = await this.ensureLaunched()
+    // Support "file:N" syntax to directly target nth file input
+    if (ref.startsWith('file:')) {
+      const nth = parseInt(ref.slice(5)) || 0
+      await page.locator('input[type="file"]').nth(nth).setInputFiles(filePath)
+      return `✓ Uploaded ${filePath} to file input #${nth}`
+    }
+    const entry = this.refMap[ref]
+    if (!entry) throw new Error(`Unknown ref: ${ref}`)
+    await page.locator(entry.selector).nth(entry.index).setInputFiles(filePath)
+    return `✓ Uploaded ${filePath} to ${ref}`
+  }
+
   async close(): Promise<string> {
     if (this.context) {
       await this.context.close()
