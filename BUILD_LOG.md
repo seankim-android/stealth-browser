@@ -41,3 +41,16 @@ All click/fill/type/hover/getText/getAttr/waitFor updated to use getLocator().
 **Result:** Reddit post submitted successfully to r/SideProject. Contenteditable forms now work reliably.
 
 ### Status: STABLE v2 — accessible-name resolution + keyboard type command shipped
+
+### ~Today — Bug fix: shadow DOM button click via dispatchEvent
+
+**Problem:** Reddit's `shreddit-composer` web component intercepts pointer events for the comment submit button. Normal `click @ref` fails with "intercepts pointer events" timeout. Shadow DOM `querySelector` through `comment-composer-host.shadowRoot` also returns null — the submit button is nested deeper.
+
+**Fix:** Use `js` command with `dispatchEvent` to bypass pointer event interception:
+```
+js "var btn = Array.from(document.querySelectorAll('button')).find(b => b.textContent.trim() === 'Comment' && b.type === 'submit'); btn ? (btn.dispatchEvent(new MouseEvent('click', {bubbles:true})), 'clicked') : 'not found'"
+```
+
+**Result:** Comment submitted successfully to r/vibecoding thread. Works for any shadow-DOM-intercepted button — find by text content + type, dispatch MouseEvent instead of pointer click.
+
+### Status: STABLE v3 — shadow DOM button workaround via dispatchEvent
