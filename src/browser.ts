@@ -1,4 +1,5 @@
 import { chromium } from 'playwright-extra'
+import { chromium as pwChromium } from 'playwright'
 import StealthPlugin from 'puppeteer-extra-plugin-stealth'
 import type { Browser, BrowserContext, Page } from 'playwright'
 import { writeFile, mkdir } from 'node:fs/promises'
@@ -16,13 +17,29 @@ export class BrowserManager {
   private browser: Browser | null = null
   private context: BrowserContext | null = null
   private page: Page | null = null
+  private isRemote = false
   public refMap: Record<string, { selector: string; index: number }> = {}
 
   async launch(): Promise<void> {
-    if (this.browser) return
+    if (this.browser || this.context) return
 
-    await mkdir(USER_DATA_DIR, { recursive: true })
     await mkdir(SCREENSHOT_DIR, { recursive: true })
+
+    // CDP mode: connect to a real Chrome browser running on the host
+    const cdpUrl = process.env.STEALTH_BROWSER_CDP_URL
+    if (cdpUrl) {
+      process.stderr.write(`Connecting to remote Chrome via CDP: ${cdpUrl}\n`)
+      this.browser = await pwChromium.connectOverCDP(cdpUrl)
+      this.isRemote = true
+      const contexts = this.browser.contexts()
+      this.context = contexts.length > 0 ? contexts[0] : await this.browser.newContext()
+      const pages = this.context.pages()
+      this.page = pages.length > 0 ? pages[0] : await this.context.newPage()
+      return
+    }
+
+    // Local mode: launch with stealth plugins
+    await mkdir(USER_DATA_DIR, { recursive: true })
 
     // launchPersistentContext keeps cookies/storage across sessions
     this.context = await chromium.launchPersistentContext(USER_DATA_DIR, {
@@ -193,6 +210,17 @@ export class BrowserManager {
   }
 
   async close(): Promise<string> {
+    if (this.isRemote) {
+      // For remote CDP: just close the page, don't close the browser
+      if (this.page) {
+        // Navigate to blank to "release" the tab
+        await this.page.goto('about:blank').catch(() => {})
+      }
+      this.page = null
+      this.context = null
+      this.browser = null
+      return '✓ Disconnected from remote browser'
+    }
     if (this.context) {
       await this.context.close()
       this.context = null
