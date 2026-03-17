@@ -17,7 +17,8 @@ export function getSocketPath(): string {
 }
 
 export function getPidPath(): string {
-  return path.join(os.homedir(), '.stealth-browser', 'daemon.pid')
+  const dir = process.env.STEALTH_BROWSER_DIR ?? path.join(os.homedir(), '.stealth-browser')
+  return path.join(dir, 'daemon.pid')
 }
 
 async function handleCommand(manager: BrowserManager, cmd: Command): Promise<Response> {

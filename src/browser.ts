@@ -10,8 +10,9 @@ import os from 'node:os'
 // Apply stealth plugin — must be done before any launch
 chromium.use(StealthPlugin())
 
-const SCREENSHOT_DIR = path.join(os.homedir(), '.stealth-browser', 'screenshots')
-const USER_DATA_DIR = path.join(os.homedir(), '.stealth-browser', 'profile')
+const BASE_DIR = process.env.STEALTH_BROWSER_DIR ?? path.join(os.homedir(), '.stealth-browser')
+const SCREENSHOT_DIR = path.join(BASE_DIR, 'screenshots')
+const USER_DATA_DIR = path.join(BASE_DIR, 'profile')
 
 export class BrowserManager {
   private browser: Browser | null = null
