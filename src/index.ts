@@ -100,17 +100,19 @@ async function sendCommand(cmd: Command): Promise<Response> {
       for (const line of lines) {
         if (!line.trim()) continue
         try {
+          clearTimeout(timer)
           resolve(JSON.parse(line) as Response)
           client.destroy()
         } catch {
+          clearTimeout(timer)
           reject(new Error('Invalid response from daemon'))
         }
       }
     })
 
-    client.on('error', (err) => reject(err))
+    client.on('error', (err) => { clearTimeout(timer); reject(err) })
 
-    setTimeout(() => reject(new Error('Command timed out after 30s')), 30000)
+    const timer = setTimeout(() => reject(new Error('Command timed out after 30s')), 30000)
   })
 }
 
