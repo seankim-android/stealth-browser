@@ -14,17 +14,27 @@ import type { Command, Response } from './types.js'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
-function isDaemonRunning(): boolean {
+async function isDaemonRunning(): Promise<boolean> {
   const socketPath = getSocketPath()
   const pidPath = getPidPath()
-  if (!fs.existsSync(socketPath) || !fs.existsSync(pidPath)) return false
-  try {
-    const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim())
-    process.kill(pid, 0) // throws if process doesn't exist
-    return true
-  } catch {
-    return false
+  if (!fs.existsSync(socketPath)) return false
+  // Try PID check first (fast path for local daemon)
+  if (fs.existsSync(pidPath)) {
+    try {
+      const pid = parseInt(fs.readFileSync(pidPath, 'utf-8').trim())
+      process.kill(pid, 0) // throws if process doesn't exist
+      return true
+    } catch {
+      // PID stale or in different namespace (container) — fall through to socket probe
+    }
   }
+  // Socket exists but no valid PID — try connecting (handles host-mounted sockets in containers)
+  return new Promise((resolve) => {
+    const conn = net.createConnection(socketPath)
+    const timer = setTimeout(() => { conn.destroy(); resolve(false) }, 500)
+    conn.on('connect', () => { clearTimeout(timer); conn.destroy(); resolve(true) })
+    conn.on('error', () => { clearTimeout(timer); resolve(false) })
+  })
 }
 
 async function startDaemon(): Promise<void> {
@@ -57,7 +67,7 @@ async function startDaemon(): Promise<void> {
 
 async function sendCommand(cmd: Command): Promise<Response> {
   // Ensure daemon is running
-  if (!isDaemonRunning()) {
+  if (!(await isDaemonRunning())) {
     process.stderr.write('Starting stealth-browser daemon...\n')
     await startDaemon()
   }

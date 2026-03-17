@@ -128,7 +128,13 @@ export class BrowserManager {
     if (!entry) throw new Error(`Unknown ref: ${ref}`)
     const locator = this.getLocator(page, entry)
     await locator.click({ timeout: 10000 })
-    await page.waitForLoadState('domcontentloaded').catch(() => {})
+    // Race: if click triggers navigation, wait briefly for DOM ready.
+    // Non-navigating clicks resolve almost instantly instead of blocking.
+    const navTimeout = parseInt(process.env.STEALTH_BROWSER_CLICK_TIMEOUT ?? '1000')
+    await Promise.race([
+      page.waitForLoadState('domcontentloaded'),
+      new Promise((r) => setTimeout(r, navTimeout)),
+    ]).catch(() => {})
     return `✓ Clicked ${ref}`
   }
 
@@ -167,7 +173,7 @@ export class BrowserManager {
     const x = direction === 'left' ? -amount : direction === 'right' ? amount : 0
     const y = direction === 'up' ? -amount : direction === 'down' ? amount : 0
     await page.mouse.wheel(x, y)
-    await page.waitForTimeout(300)
+    await page.waitForTimeout(100)
     return `✓ Scrolled ${direction} ${amount}px`
   }
 
