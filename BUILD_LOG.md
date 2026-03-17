@@ -76,3 +76,13 @@ After this the Comment button loses `[disabled]` and can be clicked normally via
 4. `click @buttonRef` — submit normally
 
 Status: STABLE v4
+
+## STABLE v5: writable dir fix for non-root containers
+
+**Problem**: `/home/node/.stealth-browser` was owned by root in some container restarts. Daemon crashed with EACCES on screenshots mkdir and daemon.pid write. Socket unlink also failed silently causing "Daemon failed to start within 15s".
+
+**Fix**: Added `STEALTH_BROWSER_DIR` env var to `browser.ts` and `daemon.ts`. Both `SCREENSHOT_DIR`/`USER_DATA_DIR` in browser.ts and `getPidPath()` in daemon.ts now use it. `recover.sh` sets `STEALTH_BROWSER_DIR=/tmp/stealth-data` and `XDG_RUNTIME_DIR=/tmp/stealth-runtime` before pinging.
+
+**Result**: `bash recover.sh` reliably brings up the daemon regardless of `/home/node/.stealth-browser` ownership.
+
+### Status: STABLE v5
