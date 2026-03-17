@@ -22,6 +22,7 @@ export interface Response {
   output?: string
   error?: string
   screenshotPath?: string
+  browserConnected?: boolean
 }
 
 export interface RefMap {

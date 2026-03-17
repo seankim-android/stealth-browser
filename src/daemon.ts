@@ -24,8 +24,11 @@ export function getPidPath(): string {
 async function handleCommand(manager: BrowserManager, cmd: Command): Promise<Response> {
   try {
     switch (cmd.action) {
-      case 'ping':
-        return { ok: true, output: 'pong' }
+      case 'ping': {
+        await manager.ensureConnected()
+        const connected = manager.getPage() != null
+        return { ok: true, output: 'pong', browserConnected: connected }
+      }
 
       case 'open': {
         const out = await manager.open(cmd.url)

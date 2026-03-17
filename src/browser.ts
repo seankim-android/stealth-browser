@@ -84,7 +84,17 @@ export class BrowserManager {
     })
   }
 
+  async ensureConnected(): Promise<void> {
+    if (this.browser && !this.browser.isConnected()) {
+      process.stderr.write('Browser disconnected, reconnecting...\n')
+      this.browser = null
+      this.context = null
+      this.page = null
+    }
+  }
+
   async ensureLaunched(): Promise<Page> {
+    await this.ensureConnected()
     if (!this.page || !this.context) {
       await this.launch()
     }
