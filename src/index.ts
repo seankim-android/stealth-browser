@@ -65,16 +65,28 @@ async function startDaemon(): Promise<void> {
   })
 }
 
+function getConnectionTarget(): { path: string } | { host: string; port: number } {
+  // TCP mode: for Docker containers where Unix sockets can't be mounted (macOS)
+  const tcpUrl = process.env.STEALTH_BROWSER_TCP_URL
+  if (tcpUrl) {
+    const [host, portStr] = tcpUrl.split(':')
+    return { host, port: parseInt(portStr) }
+  }
+  return { path: getSocketPath() }
+}
+
 async function sendCommand(cmd: Command): Promise<Response> {
-  // Ensure daemon is running
-  if (!(await isDaemonRunning())) {
+  const target = getConnectionTarget()
+  // Only auto-start daemon when using local socket (not TCP remote)
+  if ('path' in target && !(await isDaemonRunning())) {
     process.stderr.write('Starting stealth-browser daemon...\n')
     await startDaemon()
   }
 
   return new Promise((resolve, reject) => {
-    const socketPath = getSocketPath()
-    const client = net.createConnection(socketPath)
+    const client = 'path' in target
+      ? net.createConnection(target.path)
+      : net.createConnection(target.port, target.host)
     let buffer = ''
 
     client.on('connect', () => {

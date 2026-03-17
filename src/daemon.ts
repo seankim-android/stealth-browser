@@ -140,7 +140,7 @@ export async function startDaemon(): Promise<void> {
   // Pre-launch browser so first command is fast
   await manager.launch()
 
-  const server = net.createServer((socket) => {
+  const connectionHandler = (socket: net.Socket) => {
     let buffer = ''
 
     socket.on('data', (chunk) => {
@@ -167,12 +167,26 @@ export async function startDaemon(): Promise<void> {
     })
 
     socket.on('error', () => {})
-  })
+  }
+
+  const server = net.createServer(connectionHandler)
 
   server.listen(socketPath, () => {
     // Write PID file
     fs.mkdirSync(path.dirname(pidPath), { recursive: true })
     fs.writeFileSync(pidPath, String(process.pid))
+
+    // Also listen on TCP for Docker containers (macOS Docker can't mount Unix sockets).
+    // Port is configurable via STEALTH_BROWSER_TCP_PORT (default: 9224).
+    const tcpPort = parseInt(process.env.STEALTH_BROWSER_TCP_PORT ?? '9224')
+    const tcpServer = net.createServer(connectionHandler)
+    tcpServer.listen(tcpPort, '127.0.0.1', () => {
+      process.stderr.write(`Daemon TCP relay on port ${tcpPort}\n`)
+    })
+    tcpServer.on('error', (err) => {
+      process.stderr.write(`TCP relay failed (port ${tcpPort}): ${(err as NodeJS.ErrnoException).message}\n`)
+    })
+
     // Signal ready to parent
     if (process.send) process.send('ready')
   })
